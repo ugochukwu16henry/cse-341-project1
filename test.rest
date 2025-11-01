@@ -1,0 +1,17 @@
+### Get all contacts
+GET http://localhost:3000/contacts
+
+###
+
+### Get single contact by ID (replace with actual ID from your database)
+GET http://localhost:3000/contacts/6906745d6d74c47c1a4139be
+
+###
+
+### Test on Render (after deployment - replace with your Render URL)
+GET https://cse-341-project1-jujz.onrender.com/contacts
+
+###
+
+### Get single contact on Render
+GET https://cse-341-project1-jujz.onrender.com/contacts/690673ba6d74c47c1a4139bc
