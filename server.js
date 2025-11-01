@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const { initDb } = require('./db/connects');
+const { initDb } = require('./db/connect');
 
 // Load environment variables
 dotenv.config();
