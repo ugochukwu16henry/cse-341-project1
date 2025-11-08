@@ -1,9 +1,11 @@
-const { getDatabase } = require("../db/connect");
+const dbConfig = require("../config/db.config.js");
+const mongoose = require("mongoose");
+
+mongoose.Promise = global.Promise;
 
 const db = {};
-
-db.getCollection = (collectionName) => {
-  return getDatabase().collection(collectionName);
-};
+db.mongoose = mongoose;
+db.url = dbConfig.url;
+db.contacts = require("./contact.models.js")(mongoose);
 
 module.exports = db;

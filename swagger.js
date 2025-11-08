@@ -2,8 +2,8 @@ const swaggerAutogen = require("swagger-autogen")();
 
 const doc = {
   info: {
-    title: "My API",
-    description: "Contact API",
+    title: "Contacts & Temples API",
+    description: "API Documentation for Contacts and Temples",
   },
   host: "localhost:8080",
   schemes: ["http"],
@@ -12,10 +12,4 @@ const doc = {
 const outputFile = "./swagger.json";
 const endpointsFiles = ["./server.js"];
 
-// generate swagger.json
 swaggerAutogen(outputFile, endpointsFiles, doc);
-
-// Run server after it gets generated
-// swaggerAutogen(outputFile, endpointsFiles, doc).then(async () => {
-//   await import('./index.js');
-// });
