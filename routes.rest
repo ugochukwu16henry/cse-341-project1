@@ -1,5 +1,5 @@
 ### Local Development
-@baseUrl = http://localhost:3000
+@baseUrl = https://cse-341-project1-jujz.onrender.com/
 ### Production (update with your Render URL)
 # @baseUrl = https://cse-341-project1-jujz.onrender.com/
 
@@ -33,7 +33,7 @@ Content-Type: application/json
   "birthday": "1995-05-20"
 }
 
-### Delete contact (replace with actual ID)
+### Delete contact (Put actual ID)
 DELETE {{baseUrl}}/contacts/6906746e6d74c47c1a4139bf
 
 ### Access Swagger Documentation
