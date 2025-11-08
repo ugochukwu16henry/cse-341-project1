@@ -26,11 +26,16 @@ PUT {{baseUrl}}/contacts/6906745d6d74c47c1a4139be
 Content-Type: application/json
 
 {
+  
+  "_id": {
+    "$oid": "6906745d6d74c47c1a4139be"
+  },
   "firstName": "Jane",
-  "lastName": "Smith-Johnson",
-  "email": "jane.johnson@example.com",
-  "favoriteColor": "Purple",
-  "birthday": "1995-05-20"
+  "lastName": "Smith",
+  "email": "jane.smith@email.com",
+  "favoriteColor": "green",
+  "birthday": "1998-07-22"
+
 }
 
 ### Delete contact (Put actual ID)
