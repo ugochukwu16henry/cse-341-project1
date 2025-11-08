@@ -1,18 +1,20 @@
-module.exports = (app) => {
-  const contacts = require("../controllers/contacts.js");
+const express = require("express");
+const router = express.Router();
+const contactsController = require("../controllers/contacts");
 
-  // Create a new Contact
-  app.post("/contacts", contacts.create);
+// GET all contacts
+router.get("/", contactsController.getAll);
 
-  // Retrieve all Contacts
-  app.get("/contacts", contacts.findAll);
+// GET contact by id
+router.get("/:id", contactsController.getSingle);
 
-  // Retrieve a single Contact with id
-  app.get("/contacts/:id", contacts.findOne);
+// POST create new contact
+router.post("/", contactsController.createContact);
 
-  // Update a Contact with id
-  app.put("/contacts/:id", contacts.update);
+// PUT update contact
+router.put("/:id", contactsController.updateContact);
 
-  // Delete a Contact with id
-  app.delete("/contacts/:id", contacts.delete);
-};
+// DELETE contact
+router.delete("/:id", contactsController.deleteContact);
+
+module.exports = router;

@@ -1,205 +1,169 @@
-const db = require("../models");
-const Contact = db.connect;
+const mongodb = require("../db/connect");
+const ObjectId = require("mongodb").ObjectId;
 
-// IMPORTANT: For production, this should be stored securely and retrieved from the environment.
-const apiKey =
-  "T+Y6WRZMY3E8MM77/NVex3EdE+E8UhGuy6txSb7qArokm0TYlfynSX2ezn+bDSfUBpBxD5pS6SAZsB0NS4XOUQ==";
+// GET all contacts
+const getAll = async (req, res) => {
+  try {
+    const result = await mongodb
+      .getDb()
+      .db("contactsDB")
+      .collection("contacts")
+      .find()
+      .toArray();
 
-/**
- * 🚀 Create (POST) a new Contact.
- * ALL fields are required. Returns the new contact ID.
- */
-exports.create = (req, res) => {
-  /*
-    #swagger.description = 'Create a new contact'
-    #swagger.parameters['obj'] = {
-      in: 'body',
-      description: 'Contact information',
-      required: true,
-      schema: {
-        firstName: 'Jane',
-        lastName: 'Doe',
-        email: 'jane.doe@example.com',
-        favoriteColor: 'Purple',
-        birthday: '1990-01-01'
-      }
-    }
-  */
-
-  // 1. Requirement: Check that ALL required fields are present
-  if (
-    !req.body.firstName ||
-    !req.body.lastName ||
-    !req.body.email ||
-    !req.body.favoriteColor ||
-    !req.body.birthday
-  ) {
-    
-    return res.status(400).send({
-      message:
-        "All contact fields (firstName, lastName, email, favoriteColor, birthday) are required!",
-    });
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
 
-  const contact = new Contact({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    favoriteColor: req.body.favoriteColor,
-    birthday: req.body.birthday,
-  });
+// GET single contact by id
+const getSingle = async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      res
+        .status(400)
+        .json({ message: "Must use a valid contact id to find a contact." });
+      return;
+    }
 
-  contact
-    .save()
-    .then((data) => {
-      // 2. Requirement: Return the new contact id in the response body.
-      // 201 Created status is typically used for successful POST requests.
-      res.status(201).send({ insertedId: data._id });
-    })
-    .catch((err) => {
-      res.status(500).send({
+    const contactId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDb()
+      .db("contactsDB")
+      .collection("contacts")
+      .findOne({ _id: contactId });
+
+    if (!result) {
+      res.status(404).json({ message: "Contact not found." });
+      return;
+    }
+
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST create new contact
+const createContact = async (req, res) => {
+  try {
+    // Validate required fields
+    const { firstName, lastName, email, favoriteColor, birthday } = req.body;
+
+    if (!firstName || !lastName || !email || !favoriteColor || !birthday) {
+      res.status(400).json({
         message:
-          err.message || "Some error occurred while creating the Contact.",
+          "All fields are required: firstName, lastName, email, favoriteColor, birthday",
       });
-    });
-};
-
-/**
- * 🔍 Retrieve (GET) all Contacts. Requires API Key.
- */
-exports.findAll = (req, res) => {
-  /*
-    #swagger.description = 'Get all contacts. API Key required in header.'
-  */
-  if (req.header("apiKey") === apiKey) {
-    Contact.find({})
-      .then((data) => {
-        res.send(data);
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving contacts.",
-        });
-      });
-  } else {
-    res.status(401).send("Invalid apiKey, please read the documentation.");
-  }
-};
-
-/**
- * 🔎 Retrieve (GET) a single Contact with id. Requires API Key.
- */
-exports.findOne = (req, res) => {
-  /*
-    #swagger.description = 'Get a single contact by ID. API Key required in header.'
-  */
-  const id = req.params.id;
-
-  if (req.header("apiKey") === apiKey) {
-    Contact.findById(id)
-      .then((data) => {
-        if (!data)
-          res.status(404).send({ message: "Not found Contact with id " + id });
-        else res.send(data);
-      })
-      .catch(() => {
-        // Catching common Mongoose CastError for invalid IDs
-        res.status(500).send({
-          message: "Error retrieving Contact with id=" + id,
-        });
-      });
-  } else {
-    res.status(401).send("Invalid apiKey, please read the documentation.");
-  }
-};
-
-/**
- * ✍️ Update (PUT) a Contact with id. Requires API Key.
- * Returns a 204 No Content on successful completion.
- */
-exports.update = (req, res) => {
-  /*
-    #swagger.description = 'Update a contact by ID. API Key required in header.'
-    #swagger.parameters['id'] = { description: 'Contact ID' }
-    #swagger.parameters['obj'] = {
-      in: 'body',
-      description: 'Contact information to update (partial or full)',
-      schema: {
-        firstName: 'Jane',
-        email: 'new.email@example.com'
-      }
+      return;
     }
-  */
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).send({
-      message: "Data to update can not be empty!",
-    });
-  }
 
-  const id = req.params.id;
+    const contact = {
+      firstName,
+      lastName,
+      email,
+      favoriteColor,
+      birthday,
+    };
 
-  if (req.header("apiKey") === apiKey) {
-    // The { new: true } option ensures the returned document is the updated one.
-    // However, the assignment only asks for an HTTP status code, so we don't need it.
-    // { runValidators: true } ensures the updated fields comply with the schema.
-    Contact.findByIdAndUpdate(id, req.body, {
-      useFindAndModify: false,
-      runValidators: true,
-    })
-      .then((data) => {
-        if (!data) {
-          res.status(404).send({
-            message: `Cannot update Contact with id=${id}. Maybe Contact was not found!`,
-          });
-        } else {
-          // Requirement: Return an http status code representing the successful completion of the request.
-          // 204 No Content is the standard response for a successful PUT/DELETE that doesn't return a body.
-          res.status(204).send();
-        }
-      })
-      .catch((err) => {
-        // This catches validation errors (e.g., if we try to update a required field to be empty)
-        res.status(500).send({
-          message: err.message || "Error updating Contact with id=" + id,
-        });
-      });
-  } else {
-    res.status(401).send("Invalid apiKey, please read the documentation.");
+    const result = await mongodb
+      .getDb()
+      .db("contactsDB")
+      .collection("contacts")
+      .insertOne(contact);
+
+    if (result.acknowledged) {
+      res.status(201).json({ id: result.insertedId });
+    } else {
+      res.status(500).json({ message: "Failed to create contact." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-/**
- * 🗑️ Delete a Contact with id. Requires API Key.
- * Returns a 204 No Content on successful completion.
- */
-exports.delete = (req, res) => {
-  /*
-    #swagger.description = 'Delete a contact by ID. API Key required in header.'
-    #swagger.parameters['id'] = { description: 'Contact ID' }
-  */
-  const id = req.params.id;
+// PUT update contact
+const updateContact = async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      res
+        .status(400)
+        .json({ message: "Must use a valid contact id to update a contact." });
+      return;
+    }
 
-  if (req.header("apiKey") === apiKey) {
-    Contact.findByIdAndRemove(id)
-      .then((data) => {
-        if (!data) {
-          res.status(404).send({
-            message: `Cannot delete Contact with id=${id}. Maybe Contact was not found!`,
-          });
-        } else {
-          // Requirement: Return an http status code representing the successful completion of the request.
-          // 204 No Content is the standard response for a successful PUT/DELETE that doesn't return a body.
-          res.status(204).send();
-        }
-      })
-      .catch(() => {
-        // Catching common Mongoose CastError for invalid IDs
-        res.status(500).send({
-          message: "Could not delete Contact with id=" + id,
-        });
+    const contactId = new ObjectId(req.params.id);
+    const { firstName, lastName, email, favoriteColor, birthday } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !favoriteColor || !birthday) {
+      res.status(400).json({
+        message:
+          "All fields are required: firstName, lastName, email, favoriteColor, birthday",
       });
-  } else {
-    res.status(401).send("Invalid apiKey, please read the documentation.");
+      return;
+    }
+
+    const contact = {
+      firstName,
+      lastName,
+      email,
+      favoriteColor,
+      birthday,
+    };
+
+    const result = await mongodb
+      .getDb()
+      .db("contactsDB")
+      .collection("contacts")
+      .updateOne({ _id: contactId }, { $set: contact });
+
+    if (result.modifiedCount > 0) {
+      res.status(204).send();
+    } else if (result.matchedCount === 0) {
+      res.status(404).json({ message: "Contact not found." });
+    } else {
+      res.status(200).json({ message: "No changes made to contact." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+};
+
+// DELETE contact
+const deleteContact = async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) {
+      res
+        .status(400)
+        .json({ message: "Must use a valid contact id to delete a contact." });
+      return;
+    }
+
+    const contactId = new ObjectId(req.params.id);
+    const result = await mongodb
+      .getDb()
+      .db("contactsDB")
+      .collection("contacts")
+      .deleteOne({ _id: contactId });
+
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: "Contact deleted successfully." });
+    } else {
+      res.status(404).json({ message: "Contact not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = {
+  getAll,
+  getSingle,
+  createContact,
+  updateContact,
+  deleteContact,
 };

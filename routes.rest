@@ -1,0 +1,40 @@
+### Local Development
+@baseUrl = http://localhost:3000
+### Production (update with your Render URL)
+# @baseUrl = https://cse-341-project1-jujz.onrender.com/
+
+### Get all contacts
+GET {{baseUrl}}/contacts
+
+### Get contact by ID 
+GET {{baseUrl}}/contacts/690673ba6d74c47c1a4139bc
+
+### Create new contact
+POST {{baseUrl}}/contacts
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@example.com",
+  "favoriteColor": "Green",
+  "birthday": "1995-05-20"
+}
+
+### Update contact (replace with actual ID)
+PUT {{baseUrl}}/contacts/6906745d6d74c47c1a4139be
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith-Johnson",
+  "email": "jane.johnson@example.com",
+  "favoriteColor": "Purple",
+  "birthday": "1995-05-20"
+}
+
+### Delete contact (replace with actual ID)
+DELETE {{baseUrl}}/contacts/6906746e6d74c47c1a4139bf
+
+### Access Swagger Documentation
+GET {{baseUrl}}/api-docs
