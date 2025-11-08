@@ -1,16 +1,18 @@
-const routes = require("express").Router();
-const contact = require("./contacts");
+module.exports = (app) => {
+  const contacts = require("../controllers/contacts.js");
 
-routes.use("/", require("./swagger"));
-routes.use("/contacts", contact);
-routes.use(
-  "/",
-  (docData = (req, res) => {
-    let docData = {
-      documentationURL: "https://nathanbirch.github.io/nathan-byui-api-docs",
-    };
-    res.send(docData);
-  })
-);
+  // Create a new Contact
+  app.post("/contacts", contacts.create);
 
-module.exports = routes;
+  // Retrieve all Contacts
+  app.get("/contacts", contacts.findAll);
+
+  // Retrieve a single Contact with id
+  app.get("/contacts/:id", contacts.findOne);
+
+  // Update a Contact with id
+  app.put("/contacts/:id", contacts.update);
+
+  // Delete a Contact with id
+  app.delete("/contacts/:id", contacts.delete);
+};
