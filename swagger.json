@@ -1,13 +1,6 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Contact API",
-    "description": "API Documentation for Contacts",
-    "version": "1.0.0"
-  },
-  "host": "localhost:8080",{
-  "swagger": "2.0",
-  "info": {
     "title": "Contacts API",
     "description": "API Documentation for storing and retrieving information about contacts in a MongoDB database. All routes except POST require a valid API Key in the header.",
     "version": "1.0.0"
@@ -267,10 +260,4 @@
       }
     }
   }
-}
-  "basePath": "/",
-  "schemes": [
-    "http"
-  ],
-  "paths": {}
 }

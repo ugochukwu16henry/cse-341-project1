@@ -1,5 +1,5 @@
 const db = require("../models");
-const Contact = db.contacts;
+const Contact = db.connect;
 
 // IMPORTANT: For production, this should be stored securely and retrieved from the environment.
 const apiKey =
