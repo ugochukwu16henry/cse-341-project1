@@ -1,25 +1,276 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Contacts & Temples API",
-    "description": "API Documentation for Contacts and Temples",
+    "title": "Contact API",
+    "description": "API Documentation for Contacts",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",{
+  "swagger": "2.0",
+  "info": {
+    "title": "Contacts API",
+    "description": "API Documentation for storing and retrieving information about contacts in a MongoDB database. All routes except POST require a valid API Key in the header.",
     "version": "1.0.0"
   },
   "host": "localhost:8080",
   "basePath": "/",
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http", "https"],
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "apiKey"
+    }
+  },
   "paths": {
     "/": {
       "get": {
-        "description": "",
+        "description": "Root route for the API. Provides a simple status message.",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "schema": {
+              "type": "string",
+              "example": "API - Use /api-docs for documentation"
+            }
+          }
+        }
+      }
+    },
+    "/contacts": {
+      "post": {
+        "tags": ["Contacts"],
+        "summary": "Create a new contact (All fields are required)",
+        "description": "Creates a new contact document in the MongoDB database.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Contact object that needs to be added to the database. All fields are required.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Contact"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created. Returns the inserted ID.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "insertedId": {
+                  "type": "string",
+                  "example": "6564e9e0d165f97203b54432"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. All fields are required."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Contacts"],
+        "summary": "Retrieve all contacts",
+        "description": "Returns a list of all contact documents from the database.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Contact"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. Invalid API Key."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/contacts/{id}": {
+      "get": {
+        "tags": ["Contacts"],
+        "summary": "Retrieve a single contact by ID",
+        "description": "Returns a single contact document based on the provided ID.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the contact to retrieve",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Contact"
+            }
+          },
+          "401": {
+            "description": "Unauthorized. Invalid API Key."
+          },
+          "404": {
+            "description": "Not Found. Contact with the specified ID does not exist."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Contacts"],
+        "summary": "Update an existing contact by ID",
+        "description": "Updates a contact document based on the provided ID. Returns a success status code (204).",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the contact to update",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Fields to update (partial updates are allowed).",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ContactUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content. Update successful."
+          },
+          "400": {
+            "description": "Bad Request. Data to update cannot be empty."
+          },
+          "401": {
+            "description": "Unauthorized. Invalid API Key."
+          },
+          "404": {
+            "description": "Not Found. Contact with the specified ID does not exist."
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Contacts"],
+        "summary": "Delete a contact by ID",
+        "description": "Deletes a contact document based on the provided ID. Returns a success status code (204).",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the contact to delete",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content. Deletion successful."
+          },
+          "401": {
+            "description": "Unauthorized. Invalid API Key."
+          },
+          "404": {
+            "description": "Not Found. Contact with the specified ID does not exist."
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     }
+  },
+  "definitions": {
+    "Contact": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "example": "Jane"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "jane.doe@example.com"
+        },
+        "favoriteColor": {
+          "type": "string",
+          "example": "Purple"
+        },
+        "birthday": {
+          "type": "string",
+          "format": "date",
+          "example": "1990-01-01"
+        }
+      },
+      "required": ["firstName", "lastName", "email", "favoriteColor", "birthday"]
+    },
+    "ContactUpdate": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "example": "Jane"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "new.email@example.com"
+        },
+        "favoriteColor": {
+          "type": "string",
+          "example": "Blue"
+        }
+      }
+    }
   }
+}
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {}
 }
