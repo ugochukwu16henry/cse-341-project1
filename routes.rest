@@ -8,7 +8,7 @@
 ### Get all contacts
 GET {{baseUrl}}/contacts HTTP/1.1
 
-### Get contact by ID (replace with actual ID from your database)
+### Get contact by ID (replace with actual ID from database)
 GET {{baseUrl}}/contacts/690673ba6d74c47c1a4139bc
 
 ### Create new contact
@@ -41,7 +41,7 @@ Content-Type: application/json
   "birthday": "1995-05-20"
 }
 
-### Delete contact (replace with actual ID)
+### Delete contact 
 DELETE {{baseUrl}}/contacts/6906746e6d74c47c1a4139bf
 
 ### Access Swagger Documentation
