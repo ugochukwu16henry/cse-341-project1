@@ -4,6 +4,7 @@ const ObjectId = require("mongodb").ObjectId;
 // GET all contacts
 const getAll = async (req, res) => {
   try {
+    console.log("🔍 GET all contacts called");
     const result = await mongodb
       .getDb()
       .db("contactsDB")
@@ -11,9 +12,11 @@ const getAll = async (req, res) => {
       .find()
       .toArray();
 
+    console.log(`✅ Found ${result.length} contacts`);
     res.setHeader("Content-Type", "application/json");
     res.status(200).json(result);
   } catch (err) {
+    console.error("❌ GET all error:", err);
     res.status(500).json({ message: err.message });
   }
 };
