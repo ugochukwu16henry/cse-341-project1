@@ -1,3 +1,4 @@
+
 {
   "swagger": "2.0",
   "info": {
@@ -5,9 +6,9 @@
     "description": "API for managing contacts in MongoDB database",
     "version": "1.0.0"
   },
-  "host": "your-app-name.onrender.com",
+  "host": "https://cse-341-project1-jujz.onrender.com",
   "basePath": "/",
-  "schemes": ["https"],
+  "schemes": ["http"],
   "paths": {
     "/contacts": {
       "get": {

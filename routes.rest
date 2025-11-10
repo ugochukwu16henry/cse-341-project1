@@ -1,7 +1,7 @@
 
 
 #### Local Development
-@baseUrl = https://cse-341-project1-jujz.onrender.com
+@baseUrl = http://localhost:3000
 ### Production (https://cse-341-project1-jujz.onrender.com/)
 # @baseUrl = https://cse-341-project1-jujz.onrender.com
 
