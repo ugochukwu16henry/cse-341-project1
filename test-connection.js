@@ -3,84 +3,143 @@ dotenv.config();
 
 const { MongoClient } = require("mongodb");
 
-async function testConnection() {
+async function checkConnection() {
   const uri = process.env.MONGODB_URI;
 
-  console.log("🔍 Testing MongoDB Connection...\n");
+  console.log("🔍 CHECKING YOUR MONGODB CONNECTION STRING\n");
+  console.log("=".repeat(80));
 
   if (!uri) {
-    console.error("❌ ERROR: MONGODB_URI not found in .env file");
+    console.log("❌ ERROR: MONGODB_URI not found in .env file!");
+    console.log("\nMake sure you have a .env file with:");
     console.log(
-      "Please create a .env file with your MongoDB connection string"
+      "MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/databasename?retryWrites=true&w=majority"
     );
-    process.exit(1);
+    return;
   }
 
-  // Hide password in logs
-  const safeUri = uri.replace(/:([^:@]{8})[^:@]*@/, ":****@");
-  console.log("📡 Connecting to:", safeUri);
+  // Hide password for security
+  const safeUri = uri.replace(/:([^:@]{3})[^:@]*@/, ":$1***@");
+  console.log("📡 Connection string (password hidden):");
+  console.log(safeUri);
+  console.log();
+
+  // Parse the connection string
+  try {
+    let dbName = "";
+
+    // Extract database name from connection string
+    const match = uri.match(/\.net\/([^?]+)/);
+    if (match && match[1]) {
+      dbName = match[1];
+      console.log(`📂 Database specified in connection string: "${dbName}"`);
+    } else {
+      console.log("⚠️  No database specified in connection string");
+      console.log("   Will use default database name");
+    }
+
+    // Check for common issues
+    console.log("\n🔎 Checking for common issues:");
+
+    if (dbName.includes(".")) {
+      console.log("❌ PROBLEM FOUND: Database name contains a period (.)");
+      console.log(`   Current database name: "${dbName}"`);
+      console.log(`   Database names cannot contain: / \\ . " $ * < > : | ?`);
+      console.log("\n💡 SOLUTION:");
+      console.log("   Change your database name to something like: contactsDB");
+      console.log("   Update your connection string to:");
+      console.log(
+        "   mongodb+srv://user:pass@cluster.mongodb.net/contactsDB?retryWrites=true&w=majority"
+      );
+    } else {
+      console.log("✅ Database name looks good");
+    }
+
+    if (!uri.includes("mongodb+srv://") && !uri.includes("mongodb://")) {
+      console.log(
+        "❌ Connection string missing protocol (mongodb:// or mongodb+srv://)"
+      );
+    } else {
+      console.log("✅ Connection protocol is correct");
+    }
+
+    if (!uri.includes("@")) {
+      console.log("❌ Connection string missing @ symbol (credentials issue)");
+    } else {
+      console.log("✅ Connection string format looks correct");
+    }
+  } catch (err) {
+    console.log("❌ Error parsing connection string:", err.message);
+  }
+
+  // Try to connect
+  console.log("\n⏳ Attempting to connect to MongoDB...\n");
 
   let client;
-
   try {
-    // Create a new MongoClient
     client = new MongoClient(uri);
-
-    // Connect to MongoDB
-    console.log("⏳ Attempting to connect...\n");
     await client.connect();
+    console.log("✅ Successfully connected to MongoDB!");
 
-    console.log("✅ SUCCESS: Connected to MongoDB!");
-
-    // Test database access
+    // Try to access a specific database
     const db = client.db("contactsDB");
-    console.log('✅ Database "contactsDB" accessed successfully');
-
-    // Test collection access
     const collections = await db.listCollections().toArray();
-    console.log(`✅ Found ${collections.length} collection(s):`);
-    collections.forEach((col) => {
-      console.log(`   - ${col.name}`);
-    });
 
-    // Check if contacts collection exists
-    const hasContacts = collections.some((col) => col.name === "contacts");
-    if (hasContacts) {
-      const contactsCollection = db.collection("contacts");
-      const count = await contactsCollection.countDocuments();
-      console.log(`✅ "contacts" collection found with ${count} document(s)`);
+    console.log(`\n📊 Database "contactsDB" info:`);
+    console.log(`   Collections found: ${collections.length}`);
 
-      // Show sample document if exists
-      if (count > 0) {
-        const sample = await contactsCollection.findOne();
-        console.log("\n📄 Sample document:");
-        console.log(JSON.stringify(sample, null, 2));
+    if (collections.length > 0) {
+      console.log("   Collection names:");
+      for (const col of collections) {
+        const collection = db.collection(col.name);
+        const count = await collection.countDocuments();
+        console.log(`   - ${col.name} (${count} documents)`);
+
+        // If this is the contacts collection, show a sample
+        if (col.name === "contacts" && count > 0) {
+          console.log("\n   📄 Sample contact:");
+          const sample = await collection.findOne();
+          console.log(
+            "   ",
+            JSON.stringify(sample, null, 2).replace(/\n/g, "\n   ")
+          );
+        }
       }
     } else {
       console.log(
-        '⚠️  "contacts" collection not found - it will be created when you add your first contact'
+        "   ⚠️  No collections found. Database is empty or doesn't exist yet."
       );
     }
 
-    console.log("\n🎉 MongoDB is ready to use!");
+    console.log("\n💡 NEXT STEPS:");
+    console.log(
+      "1. If no contacts collection exists, create it by adding a contact via POST"
+    );
+    console.log(
+      '2. Make sure your API is using db("contactsDB").collection("contacts")'
+    );
+    console.log(
+      "3. If contacts are in a different database, update your connection string"
+    );
   } catch (error) {
-    console.error("\n❌ CONNECTION FAILED:");
-    console.error("Error:", error.message);
-
-    console.log("\n🔧 Troubleshooting tips:");
-    console.log("1. Check your MONGODB_URI in .env file");
-    console.log("2. Verify your MongoDB username and password");
-    console.log("3. Ensure your IP address is whitelisted in MongoDB Atlas");
-    console.log("4. Check if your cluster is active and running");
-    console.log("5. Verify network connectivity");
+    console.log("❌ Connection failed!");
+    console.log("Error:", error.message);
+    console.log("\n💡 TROUBLESHOOTING:");
+    console.log("1. Check your username and password in the connection string");
+    console.log(
+      "2. Whitelist your IP address in MongoDB Atlas (Network Access)"
+    );
+    console.log("3. Make sure your cluster is active and running");
+    console.log(
+      "4. Verify the connection string is copied correctly from MongoDB Atlas"
+    );
   } finally {
-    // Close connection
     if (client) {
       await client.close();
-      console.log("\n🔌 Connection closed");
     }
   }
+
+  console.log("\n" + "=".repeat(80));
 }
 
-// Run the test
-testConnection();
+checkConnection();
